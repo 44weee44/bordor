@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Врата — полигон</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=IBM+Plex+Mono:wght@400;500&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #050304;
+  --deep: #010101;
+  --bone: #d8cdc4;
+  --dim: #756863;
+  --ember: #8e3428;
+  --hot: #e4c0a6;
+  --blood: #3a1010;
+  --line: rgba(228, 192, 166, 0.16);
+  --ease: cubic-bezier(0.16, 0.84, 0.24, 1);
+  --display: "Oswald", Impact, "Arial Narrow", sans-serif;
+  --serif: "Cormorant Garamond", Georgia, serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+html { background: var(--deep); color: var(--bone); color-scheme: dark; }
+body {
+  margin: 0; min-height: 100%;
+  background:
+    radial-gradient(ellipse at 50% -10%, rgba(58, 16, 16, 0.55), transparent 46%),
+    var(--bg);
+  color: var(--bone);
+  font-family: var(--serif);
+  text-rendering: optimizeLegibility;
+}
+a { color: inherit; text-decoration: none; }
+button, input, textarea { font: inherit; }
+::selection { background: var(--blood); color: var(--bone); }
+.vig {
+  position: fixed; inset: 0; pointer-events: none; z-index: 8;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.72) 100%);
+}
+.grain {
+  position: fixed; inset: -20%; pointer-events: none; z-index: 9; opacity: 0.1;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.eye {
+  position: fixed; top: -8vh; right: -18vw; width: min(70vw, 280px); pointer-events: none; z-index: 0;
+  opacity: 0.55; color: var(--ember);
+  animation: breathe 14s ease-in-out infinite;
+}
+.eye svg { width: 100%; height: auto; overflow: visible; }
+.ticks, .iris, .pupil { transform-box: fill-box; transform-origin: center; }
+.ticks { fill: none; stroke: currentColor; stroke-width: 1.2; stroke-dasharray: 1.4 12; opacity: 0.55; animation: spin 140s linear infinite; }
+.iris { fill: none; stroke: var(--ember); stroke-width: 8; opacity: 0.8; }
+.pupil { fill: var(--deep); stroke: var(--hot); stroke-width: 3; animation: pupil 9s ease-in-out infinite; }
+.flash {
+  position: fixed; inset: 0; z-index: 7; pointer-events: none; opacity: 0;
+  background: radial-gradient(circle at 50% 40%, rgba(142, 52, 40, 0.28), transparent 58%);
+  transition: opacity 1.4s var(--ease);
+}
+body.is-open .flash { opacity: 1; }
+.wrap {
+  position: relative; z-index: 1;
+  width: min(100%, 40rem);
+  margin: 0 auto;
+  padding: calc(1.1rem + env(safe-area-inset-top)) 1.25rem calc(2.5rem + env(safe-area-inset-bottom));
+}
+.top {
+  display: flex; justify-content: space-between; gap: 1rem; align-items: baseline;
+  font-family: var(--display); font-size: 0.72rem; font-weight: 500;
+  letter-spacing: 0.32em; text-transform: uppercase; color: var(--dim);
+}
+.top a { color: var(--hot); }
+.kicker {
+  margin: 2.4rem 0 0;
+  font-family: var(--display); font-size: 0.72rem; font-weight: 500;
+  letter-spacing: 0.34em; text-transform: uppercase; color: var(--ember);
+}
+h1 {
+  margin: 0.35rem 0 0;
+  font-family: var(--display); font-weight: 700;
+  font-size: clamp(4.4rem, 24vw, 7.5rem); line-height: 0.82; letter-spacing: -0.045em;
+  text-transform: uppercase;
+}
+h1 span { display: inline-block; animation: rise 1.35s var(--ease) both; }
+h1 span:nth-child(2) { animation-delay: 0.12s; }
+h1 span:nth-child(3) { animation-delay: 0.24s; }
+h1 span:nth-child(4) { animation-delay: 0.36s; }
+h1 span:nth-child(5) { animation-delay: 0.48s; }
+.lede {
+  margin: 0.9rem 0 0; max-width: 18rem;
+  font-size: clamp(1.3rem, 4.6vw, 1.7rem); font-style: italic; line-height: 1.25;
+  animation: rise 1.5s var(--ease) 0.35s both;
+}
+.tabs {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0.55rem;
+  margin-top: 2rem;
+}
+.tabs button {
+  height: 3rem; border: 1px solid var(--line); background: transparent; color: var(--dim);
+  font-family: var(--display); font-size: 0.74rem; font-weight: 500;
+  letter-spacing: 0.22em; text-transform: uppercase;
+  transition: color 0.7s ease, border-color 0.7s ease, background 0.7s ease;
+}
+.tabs button[aria-selected="true"] {
+  color: var(--bone); border-color: rgba(228, 192, 166, 0.55);
+  background: rgba(58, 16, 16, 0.55);
+}
+label {
+  display: block; margin-top: 1.15rem;
+  font-family: var(--display); font-size: 0.68rem; font-weight: 500;
+  letter-spacing: 0.28em; text-transform: uppercase; color: var(--dim);
+}
+input, textarea {
+  display: block; width: 100%; margin-top: 0.35rem; padding: 0.8rem 0.05rem 0.7rem;
+  border: 0; border-bottom: 1px solid var(--line); border-radius: 0;
+  background: transparent; color: var(--bone);
+  font-family: var(--mono); font-size: 16px; line-height: 1.4;
+  transition: border-color 0.8s var(--ease), background 0.8s ease;
+}
+textarea { min-height: 5.2rem; resize: vertical; }
+input:focus, textarea:focus { outline: none; border-bottom-color: var(--hot); background: rgba(228, 192, 166, 0.03); }
+.go, .ghost {
+  width: 100%; margin-top: 1.3rem; height: 3.1rem; border: 0;
+  font-family: var(--display); font-size: 0.78rem; font-weight: 500;
+  letter-spacing: 0.28em; text-transform: uppercase;
+  transition: transform 0.7s var(--ease), background 0.7s ease, color 0.7s ease, opacity 0.7s ease;
+}
+.go { background: var(--ember); color: #f3e7df; }
+.go:active { transform: translateY(1px); }
+.ghost {
+  background: transparent; color: var(--dim); border: 1px solid var(--line); margin-top: 0.7rem;
+}
+form[hidden] { display: none; }
+form { animation: rise 0.9s var(--ease); }
+.panel {
+  margin-top: 1.6rem; padding-top: 1rem;
+  border-top: 1px solid rgba(228, 192, 166, 0.08);
+}
+.panel h2, .tasks h2, details summary {
+  margin: 0;
+  font-family: var(--display); font-size: 0.68rem; font-weight: 500;
+  letter-spacing: 0.3em; text-transform: uppercase; color: var(--dim);
+}
+pre {
+  margin: 0.7rem 0 0; white-space: pre-wrap; word-break: break-word;
+  font-family: var(--mono); font-size: 0.75rem; line-height: 1.55; color: var(--hot);
+  min-height: 3.2rem;
+}
+#out:empty { display: none; }
+#out { margin-top: 1rem; animation: rise 0.8s var(--ease); }
+.ok { margin: 0; font-family: var(--display); letter-spacing: 0.18em; text-transform: uppercase; font-size: 0.72rem; color: var(--hot); }
+.bad { margin: 0; font-family: var(--display); letter-spacing: 0.16em; text-transform: uppercase; font-size: 0.72rem; color: #c47a6a; }
+.who {
+  margin: 0.45rem 0 0; font-family: var(--display); font-weight: 700;
+  font-size: clamp(2rem, 8vw, 3rem); line-height: 0.95; letter-spacing: -0.03em; text-transform: uppercase;
+}
+.role, .echo { margin: 0.25rem 0 0; color: var(--dim); font-style: italic; font-size: 1.2rem; }
+.note { margin-top: 0.45rem; }
+.wall { display: flex; flex-direction: column; gap: 0.85rem; margin-top: 0.9rem; }
+.wall article {
+  padding-bottom: 0.8rem; border-bottom: 1px solid rgba(228, 192, 166, 0.08);
+  animation: rise 1s var(--ease);
+}
+.wname {
+  margin: 0; font-family: var(--display); letter-spacing: 0.14em; text-transform: uppercase; font-size: 0.95rem;
+}
+.wrole { margin: 0.15rem 0 0; color: var(--ember); font-family: var(--mono); font-size: 0.72rem; }
+.wnote { margin: 0.35rem 0 0; font-size: 1.2rem; }
+.tasks { list-style: none; margin: 0.8rem 0 0; padding: 0; }
+.tasks li {
+  display: grid; grid-template-columns: auto 1fr; gap: 0.7rem; align-items: baseline;
+  padding: 0.75rem 0; border-bottom: 1px solid rgba(228, 192, 166, 0.06);
+  color: var(--dim); opacity: 0.55;
+  transition: opacity 0.9s var(--ease), color 0.9s ease;
+}
+.tasks li.is-done { opacity: 1; color: var(--bone); }
+.mark {
+  font-family: var(--mono); font-size: 0.72rem; color: var(--ember);
+}
+.tasks li.is-done .mark { color: var(--hot); }
+details { margin-top: 1.5rem; }
+summary { cursor: pointer; list-style: none; }
+summary::-webkit-details-marker { display: none; }
+.help { margin-top: 0.8rem; color: var(--dim); font-size: 1.05rem; line-height: 1.45; }
+.help p { margin: 0.7rem 0; }
+.help code {
+  display: block; margin-top: 0.35rem; color: var(--hot);
+  font-family: var(--mono); font-size: 0.74rem; line-height: 1.45; white-space: pre-wrap; word-break: break-word;
+}
+.ribbon {
+  margin-top: 2.4rem; overflow: hidden; white-space: nowrap; opacity: 0.28;
+  font-family: var(--display); letter-spacing: 0.22em; text-transform: uppercase; font-size: 0.72rem;
+}
+.ribbon span { display: inline-block; animation: slide 42s linear infinite; }
+@keyframes rise {
+  from { opacity: 0; filter: blur(12px); transform: translateY(0.6em); }
+  to { opacity: 1; filter: none; transform: none; }
+}
+@keyframes breathe {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.4; }
+  50% { transform: translate3d(-2%, 1%, 0) scale(1.05); opacity: 0.7; }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pupil {
+  0%, 100% { transform: scale(1, 1); }
+  50% { transform: scale(1.16, 0.88); }
+}
+@keyframes slide { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  h1 span, .lede, form, .wall article { opacity: 1; filter: none; transform: none; }
+}
+</style>
+</head>
+<body>
+<div class="vig"></div>
+<div class="grain"></div>
+<div class="flash"></div>
+<div class="eye" aria-hidden="true">
+  <svg viewBox="0 0 800 800">
+    <circle class="ticks" cx="400" cy="400" r="300"></circle>
+    <circle class="iris" cx="400" cy="400" r="168"></circle>
+    <ellipse class="pupil" cx="400" cy="400" rx="26" ry="148"></ellipse>
+  </svg>
+</div>
+<main class="wrap">
+  <div class="top"><a href="index.html">К стиху</a><span>Полигон</span></div>
+  <p class="kicker">Кто посмел огонь схватить</p>
+  <h1><span>В</span><span>р</span><span>а</span><span>т</span><span>а</span></h1>
+  <p class="lede">Замок склеен из строки. Кавычка — уже трещина.</p>
+
+  <div class="tabs" role="tablist">
+    <button type="button" id="tab-in" role="tab" aria-selected="true" aria-controls="form-in">Вход</button>
+    <button type="button" id="tab-up" role="tab" aria-selected="false" aria-controls="form-up">Регистрация</button>
+  </div>
+
+  <form id="form-in" autocomplete="off">
+    <label>Имя<input id="in-user" name="user" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="blake"></label>
+    <label>Пароль<input id="in-pass" name="pass" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="••••"></label>
+    <button class="go" type="submit">Войти</button>
+  </form>
+
+  <form id="form-up" hidden autocomplete="off">
+    <label>Имя<input id="up-user" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+    <label>Пароль<input id="up-pass" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+    <label>Заметка<textarea id="up-note" spellcheck="false" placeholder="что оставить в лесу"></textarea></label>
+    <button class="go" type="submit">Записать</button>
+  </form>
+
+  <section class="panel" aria-label="Запрос">
+    <h2>Собранный запрос</h2>
+    <pre id="sql"></pre>
+    <div id="out"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Следы</h2>
+    <div class="wall" id="wall"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Что сломать</h2>
+    <ol class="tasks" id="tasks"></ol>
+    <button class="ghost" type="button" id="reset">Сбросить полигон</button>
+  </section>
+
+  <details>
+    <summary>Как устроен замок</summary>
+    <div class="help">
+      <p>Это тренировка в твоём браузере. Чужих серверов тут нет, таблица живёт на странице, следы помнит только этот браузер.</p>
+      <p>Вход склеивается так, без экранирования:<code>SELECT id, user, pass, role, note FROM users WHERE user = '…' AND pass = '…'</code></p>
+      <p>Регистрация:<code>INSERT INTO users (user, pass, role, note) VALUES ('…', '…', 'wanderer', '…')</code></p>
+      <p>Имена уже внутри: blake, admin, guest. Столбцы: id, user, pass, role, note. Пароль на страницу сам не выводится — его надо вытащить запросом.</p>
+      <p>Кавычка закрывает строку. Два дефиса прячут хвост.<code>' OR 1=1 --</code><code>admin'--</code></p>
+      <p>UNION подклеивает свою строку. Нужно 5 столбцов.<code>' UNION SELECT 1,'тень','x','keeper','след' --</code></p>
+      <p>Чужое поле можно поставить на место имени.<code>' UNION SELECT id, pass, pass, role, user FROM users WHERE user='admin' --</code></p>
+      <p>Имя, ошибка и заметка вставляются в страницу как есть. Скрипт тоже.<code>&lt;img src=x onerror=alert('тигр')&gt;</code><code>&lt;script&gt;alert('тигр')&lt;/script&gt;</code></p>
+    </div>
+  </details>
+
+  <div class="ribbon" aria-hidden="true"><span>Тигр, тигр, жгучий страх — ты горишь в ночных лесах — чей бессмертный взор, любя — создал страшного тебя —&nbsp;&nbsp;Тигр, тигр, жгучий страх — ты горишь в ночных лесах — чей бессмертный взор, любя — создал страшного тебя —&nbsp;&nbsp;</span></div>
+</main>
+<script>
+function stripSqlComments(sql) {
+  let out = "";
+  let i = 0;
+  while (i < sql.length) {
+    const c = sql[i];
+    if (c === "'") {
+      let j = i + 1;
+      let s = "'";
+      while (j < sql.length) {
+        if (sql[j] === "'" && sql[j + 1] === "'") {
+          s += "''";
+          j += 2;
+          continue;
+        }
+        s += sql[j];
+        if (sql[j] === "'") {
+          j += 1;
+          break;
+        }
+        j += 1;
+      }
+      out += s;
+      i = j;
+      continue;
+    }
+    if (c === '"') {
+      let j = i + 1;
+      let s = '"';
+      while (j < sql.length) {
+        if (sql[j] === '"' && sql[j + 1] === '"') {
+          s += '""';
+          j += 2;
+          continue;
+        }
+        s += sql[j];
+        if (sql[j] === '"') {
+          j += 1;
+          break;
+        }
+        j += 1;
+      }
+      out += s;
+      i = j;
+      continue;
+    }
+    if (c === "-" && sql[i + 1] === "-") break;
+    if (c === "#") break;
+    if (c === "/" && sql[i + 1] === "*") {
+      const end = sql.indexOf("*/", i + 2);
+      i = end < 0 ? sql.length : end + 2;
+      continue;
+    }
+    out += c;
+    i += 1;
+  }
+  return out.trim().replace(/;+\s*$/, "");
+}
+
+function tokenize(sql) {
+  const re = /'(?:[^']|'')*'|"(?:[^"]|"")*"|<=|>=|<>|!=|=|<|>|,|\(|\)|\*|\d+(?:\.\d+)?|[A-Za-z_][A-Za-z0-9_]*|\S/g;
+  return sql.match(re) || [];
+}
+
+function parse(sql) {
+  const tokens = tokenize(sql);
+  let i = 0;
+  const peek = () => tokens[i];
+  const isKw = (w) => (peek() || "").toUpperCase() === w;
+  function eat(v) {
+    if (!isKw(v)) throw new Error("ждали " + v + ", а пришло «" + (peek() || "конец") + "»");
+    i += 1;
+  }
+  function parsePrimary() {
+    const t = peek();
+    if (t === undefined) throw new Error("выражение оборвалось");
+    if (t === "(") {
+      i += 1;
+      const e = parseOr();
+      if (peek() !== ")") throw new Error("нет закрывающей скобки");
+      i += 1;
+      return e;
+    }
+    i += 1;
+    if (t[0] === "'" || t[0] === '"') {
+      const q = t[0];
+      return { lit: t.slice(1, -1).split(q + q).join(q) };
+    }
+    if (/^\d/.test(t)) return { lit: Number(t) };
+    const u = t.toUpperCase();
+    if (u === "NULL") return { lit: null };
+    if (u === "TRUE") return { lit: true };
+    if (u === "FALSE") return { lit: false };
+    if (!/^[A-Za-z_]/.test(t)) throw new Error("не понял «" + t + "»");
+    return { col: t };
+  }
+  function parseCmp() {
+    const left = parsePrimary();
+    const op = peek();
+    if (["=", "!=", "<>", "<", ">", "<=", ">="].includes(op)) {
+      i += 1;
+      return { op, left, right: parsePrimary() };
+    }
+    return left;
+  }
+  function parseNot() {
+    if (isKw("NOT")) {
+      i += 1;
+      return { op: "NOT", left: parseNot() };
+    }
+    return parseCmp();
+  }
+  function parseAnd() {
+    let left = parseNot();
+    while (isKw("AND")) {
+      i += 1;
+      left = { op: "AND", left, right: parseNot() };
+    }
+    return left;
+  }
+  function parseOr() {
+    let left = parseAnd();
+    while (isKw("OR")) {
+      i += 1;
+      left = { op: "OR", left, right: parseAnd() };
+    }
+    return left;
+  }
+  function parseSelect() {
+    eat("SELECT");
+    let cols;
+    if (peek() === "*") {
+      i += 1;
+      cols = "*";
+    } else {
+      cols = [];
+      while (true) {
+        cols.push(parsePrimary());
+        if (peek() === ",") {
+          i += 1;
+          continue;
+        }
+        break;
+      }
+    }
+    let table = null;
+    let where = null;
+    if (isKw("FROM")) {
+      i += 1;
+      table = peek();
+      if (!table) throw new Error("нет таблицы");
+      i += 1;
+      if (isKw("WHERE")) {
+        i += 1;
+        where = parseOr();
+      }
+    } else if (cols === "*") {
+      throw new Error("SELECT * требует FROM");
+    }
+    return { cols, table, where };
+  }
+  if (isKw("SELECT")) {
+    const parts = [parseSelect()];
+    while (isKw("UNION")) {
+      i += 1;
+      if (isKw("ALL")) i += 1;
+      parts.push(parseSelect());
+    }
+    if (i < tokens.length) throw new Error("лишнее: " + tokens.slice(i).join(" "));
+    return { kind: "select", parts };
+  }
+  if (isKw("INSERT")) {
+    i += 1;
+    eat("INTO");
+    const table = peek();
+    if (!table) throw new Error("нет таблицы");
+    i += 1;
+    let cols = null;
+    if (peek() === "(") {
+      i += 1;
+      cols = [];
+      while (true) {
+        if (!peek() || peek() === ")") break;
+        cols.push(peek());
+        i += 1;
+        if (peek() === ",") {
+          i += 1;
+          continue;
+        }
+        break;
+      }
+      if (peek() !== ")") throw new Error("нет ) после столбцов");
+      i += 1;
+    }
+    eat("VALUES");
+    if (peek() !== "(") throw new Error("ждали значения");
+    i += 1;
+    const vals = [];
+    while (true) {
+      vals.push(parsePrimary());
+      if (peek() === ",") {
+        i += 1;
+        continue;
+      }
+      break;
+    }
+    if (peek() !== ")") throw new Error("нет ) после значений");
+    i += 1;
+    if (i < tokens.length) throw new Error("лишнее: " + tokens.slice(i).join(" "));
+    return { kind: "insert", table, cols, vals };
+  }
+  throw new Error("полигон понимает только SELECT и INSERT");
+}
+
+const ORDER = ["id", "user", "pass", "role", "note"];
+
+function isConst(expr) {
+  if (!expr || typeof expr !== "object") return false;
+  if ("lit" in expr) return true;
+  if (expr.col) return false;
+  return isConst(expr.left) && (expr.right ? isConst(expr.right) : true);
+}
+
+function coerce(a, b) {
+  if (typeof a === "number" && typeof b === "string" && b.trim() !== "" && !Number.isNaN(Number(b))) return [a, Number(b)];
+  if (typeof b === "number" && typeof a === "string" && a.trim() !== "" && !Number.isNaN(Number(a))) return [Number(a), b];
+  return [a, b];
+}
+
+function truthy(v) {
+  if (v === true) return true;
+  if (v === false || v === null || v === undefined) return false;
+  if (typeof v === "number") return v !== 0;
+  if (typeof v === "string") return v.length > 0 && v !== "0";
+  return !!v;
+}
+
+function evalExpr(node, row) {
+  if (!node || typeof node !== "object") return node;
+  if ("lit" in node) return node.lit;
+  if (node.col) {
+    const key = Object.keys(row).find((k) => k.toLowerCase() === node.col.toLowerCase());
+    if (!key) throw new Error("нет столбца " + node.col);
+    return row[key];
+  }
+  if (node.op === "OR") return truthy(evalExpr(node.left, row)) || truthy(evalExpr(node.right, row));
+  if (node.op === "AND") return truthy(evalExpr(node.left, row)) && truthy(evalExpr(node.right, row));
+  if (node.op === "NOT") return !truthy(evalExpr(node.left, row));
+  const [a0, b0] = coerce(evalExpr(node.left, row), evalExpr(node.right, row));
+  if (node.op === "=") return a0 === b0;
+  if (node.op === "!=" || node.op === "<>") return a0 !== b0;
+  if (node.op === "<") return a0 < b0;
+  if (node.op === ">") return a0 > b0;
+  if (node.op === "<=") return a0 <= b0;
+  if (node.op === ">=") return a0 >= b0;
+  throw new Error("неизвестный оператор");
+}
+
+function project(row, cols, names) {
+  if (cols === "*") {
+    return { id: row.id, user: row.user, pass: row.pass, role: row.role, note: row.note };
+  }
+  const out = {};
+  cols.forEach((c, idx) => {
+    const name = (names && names[idx]) || ORDER[idx] || "c" + idx;
+    out[name] = evalExpr(c, row);
+  });
+  return out;
+}
+
+function namesOf(part) {
+  if (part.cols === "*") return ORDER.slice();
+  return part.cols.map((c, idx) => ORDER[idx] || "c" + idx);
+}
+
+function runSql(raw, db) {
+  const cleaned = stripSqlComments(raw);
+  const ast = parse(cleaned);
+  if (ast.kind === "insert") {
+    const key = ast.table.toLowerCase();
+    const table = db[key];
+    if (!table) throw new Error("нет таблицы " + ast.table);
+    const cols = (ast.cols || ORDER).map((c) => String(c).toLowerCase());
+    if (cols.length !== ast.vals.length) throw new Error("столбцов " + cols.length + ", значений " + ast.vals.length);
+    const row = { id: table.reduce((m, r) => Math.max(m, Number(r.id) || 0), 0) + 1, user: "", pass: "", role: "wanderer", note: "" };
+    cols.forEach((c, idx) => {
+      row[c] = evalExpr(ast.vals[idx], {});
+    });
+    table.push(row);
+    return { kind: "insert", rows: [row], cleaned };
+  }
+  const widths = ast.parts.map((p) => (p.cols === "*" ? 5 : p.cols.length));
+  if (widths.some((w) => w !== widths[0])) throw new Error("разная ширина UNION: " + widths.join(" и "));
+  const names = namesOf(ast.parts[0]);
+  const rows = [];
+  for (const part of ast.parts) {
+    const constant = part.cols !== "*" && part.cols.every(isConst);
+    if (!part.table) {
+      if (!constant) throw new Error("нет таблицы");
+      if (!part.where || truthy(evalExpr(part.where, {}))) rows.push(project({}, part.cols, names));
+      continue;
+    }
+    const table = db[part.table.toLowerCase()];
+    if (!table) throw new Error("нет таблицы " + part.table);
+    if (constant) {
+      if (!part.where || truthy(evalExpr(part.where, {}))) rows.push(project({}, part.cols, names));
+      continue;
+    }
+    for (const row of table) {
+      if (!part.where || truthy(evalExpr(part.where, row))) rows.push(project(row, part.cols, names));
+    }
+  }
+  return { kind: "select", rows, cleaned };
+}
+
+(function () {
+  const TASKS = [
+    ["or", "Войти, не зная пароля"],
+    ["comment", "Сесть на чужое имя, спрятав хвост"],
+    ["union", "Подклеить свою строку"],
+    ["secret", "Вытащить пароль хранителя в ответ"],
+    ["spark", "Заставить страницу выполнить скрипт"]
+  ];
+  const KEY = "tg-lab-v1";
+
+  function seedUsers() {
+    return [
+      { id: 1, user: "blake", pass: "tyger", role: "poet", note: "Песни опыта" },
+      { id: 2, user: "admin", pass: "lamb1794", role: "keeper", note: "ключи леса" },
+      { id: 3, user: "guest", pass: "guest", role: "wanderer", note: "" }
+    ];
+  }
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (!raw) return { users: seedUsers(), flags: {} };
+      const data = JSON.parse(raw);
+      if (!Array.isArray(data.users)) throw new Error("пусто");
+      return { users: data.users, flags: data.flags || {} };
+    } catch (e) {
+      return { users: seedUsers(), flags: {} };
+    }
+  }
+
+  const state = load();
+  const sqlEl = document.getElementById("sql");
+  const outEl = document.getElementById("out");
+  const wallEl = document.getElementById("wall");
+  const tasksEl = document.getElementById("tasks");
+  const formIn = document.getElementById("form-in");
+  const formUp = document.getElementById("form-up");
+  let mode = "in";
+  let sink = false;
+  let alerts = 0;
+  const nativeAlert = window.alert.bind(window);
+
+  function save() {
+    localStorage.setItem(KEY, JSON.stringify({ users: state.users, flags: state.flags }));
+  }
+
+  function mark(id) {
+    if (!sink || state.flags[id]) return;
+    state.flags[id] = true;
+    save();
+    renderTasks();
+  }
+
+  window.alert = function (msg) {
+    if (sink) mark("spark");
+    alerts += 1;
+    if (alerts <= 2) nativeAlert(msg === undefined ? "" : String(msg));
+  };
+
+  function revive(root) {
+    root.querySelectorAll("script").forEach((old) => {
+      const fresh = document.createElement("script");
+      fresh.textContent = old.textContent;
+      old.replaceWith(fresh);
+    });
+  }
+
+  function unsafe(el, html) {
+    sink = true;
+    el.innerHTML = html;
+    revive(el);
+    sink = false;
+  }
+
+  function qIn() {
+    const user = document.getElementById("in-user").value;
+    const pass = document.getElementById("in-pass").value;
+    return "SELECT id, user, pass, role, note FROM users WHERE user = '" + user + "' AND pass = '" + pass + "'";
+  }
+
+  function qUp() {
+    const user = document.getElementById("up-user").value;
+    const pass = document.getElementById("up-pass").value;
+    const note = document.getElementById("up-note").value;
+    return "INSERT INTO users (user, pass, role, note) VALUES ('" + user + "', '" + pass + "', 'wanderer', '" + note + "')";
+  }
+
+  function showQuery() {
+    sqlEl.textContent = mode === "in" ? qIn() : qUp();
+  }
+
+  function renderTasks() {
+    tasksEl.innerHTML = "";
+    TASKS.forEach((task, index) => {
+      const li = document.createElement("li");
+      if (state.flags[task[0]]) li.className = "is-done";
+      const markEl = document.createElement("span");
+      markEl.className = "mark";
+      markEl.textContent = state.flags[task[0]] ? "●" : "○";
+      const text = document.createElement("span");
+      text.textContent = String(index + 1).padStart(2, "0") + "  " + task[1];
+      li.append(markEl, text);
+      tasksEl.appendChild(li);
+    });
+  }
+
+  function renderWall() {
+    sink = true;
+    wallEl.innerHTML = state.users.map((row) => (
+      '<article><p class="wname">' + (row.user == null ? "" : String(row.user)) + '</p>' +
+      '<p class="wrole">' + (row.role == null ? "" : String(row.role)) + '</p>' +
+      '<div class="wnote">' + (row.note == null || row.note === "" ? "—" : String(row.note)) + "</div></article>"
+    )).join("");
+    revive(wallEl);
+    sink = false;
+  }
+
+  function scoreLogin(user, pass, query, rows) {
+    sink = true;
+    const first = rows[0] || {};
+    if (rows.length > 1 && /\bor\b/i.test(query)) mark("or");
+    if (String(first.user).toLowerCase() === "admin" && /--|\/\*|#/.test(user) && pass !== "lamb1794") mark("comment");
+    if (/\bunion\b/i.test(query) && rows.length) mark("union");
+    const shown = rows.map((row) => [row.user, row.role, row.note].join(" ")).join(" ");
+    if (/\bunion\b/i.test(query) && shown.indexOf("lamb1794") !== -1) mark("secret");
+    sink = false;
+  }
+
+  function openPulse(on) {
+    document.body.classList.toggle("is-open", on);
+  }
+
+  function setMode(next) {
+    mode = next;
+    const enter = next === "in";
+    formIn.hidden = !enter;
+    formUp.hidden = enter;
+    document.getElementById("tab-in").setAttribute("aria-selected", enter ? "true" : "false");
+    document.getElementById("tab-up").setAttribute("aria-selected", enter ? "false" : "true");
+    showQuery();
+  }
+
+  document.getElementById("tab-in").addEventListener("click", () => setMode("in"));
+  document.getElementById("tab-up").addEventListener("click", () => setMode("up"));
+  ["in-user", "in-pass", "up-user", "up-pass", "up-note"].forEach((id) => {
+    document.getElementById(id).addEventListener("input", showQuery);
+  });
+
+  formIn.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const user = document.getElementById("in-user").value;
+    const pass = document.getElementById("in-pass").value;
+    const query = qIn();
+    try {
+      const result = runSql(query, { users: state.users });
+      if (!result.rows.length) {
+        openPulse(false);
+        unsafe(outEl, '<p class="bad">Врата молчат</p><p class="echo">' + user + "</p>");
+        return;
+      }
+      const row = result.rows[0];
+      const many = result.rows.length > 1 ? " · строк " + result.rows.length : "";
+      openPulse(true);
+      unsafe(
+        outEl,
+        '<p class="ok">Врата открылись' + many + '</p><p class="who">' + (row.user == null ? "—" : String(row.user)) + '</p><p class="role">' + (row.role == null ? "" : String(row.role)) + '</p><div class="note">' + (row.note == null ? "" : String(row.note)) + "</div>"
+      );
+      scoreLogin(user, pass, query, result.rows);
+    } catch (error) {
+      openPulse(false);
+      unsafe(outEl, '<p class="bad">Трещина в запросе</p><p class="echo">' + error.message + '</p><p class="echo">' + user + '</p>');
+    }
+  });
+
+  formUp.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const user = document.getElementById("up-user").value;
+    const query = qUp();
+    try {
+      runSql(query, { users: state.users });
+      save();
+      openPulse(true);
+      unsafe(outEl, '<p class="ok">Имя легло в таблицу</p><p class="echo">' + user + "</p>");
+      renderWall();
+    } catch (error) {
+      openPulse(false);
+      unsafe(outEl, '<p class="bad">Запись сорвалась</p><p class="echo">' + error.message + '</p><p class="echo">' + user + '</p>');
+    }
+  });
+
+  document.getElementById("reset").addEventListener("click", () => {
+    state.users = seedUsers();
+    state.flags = {};
+    alerts = 0;
+    save();
+    outEl.replaceChildren();
+    openPulse(false);
+    renderWall();
+    renderTasks();
+    showQuery();
+  });
+
+  renderTasks();
+  renderWall();
+  showQuery();
+})();
+</script>
+</body>
+</html>
