@@ -1,7 +1,7 @@
 extends Control
 
-@export var base_radius: float = 76.0
-@export var knob_radius: float = 31.0
+@export var base_radius: float = 66.0
+@export var knob_radius: float = 27.0
 @export var deadzone: float = 0.12
 
 var _output := Vector2.ZERO
@@ -10,7 +10,7 @@ var _touch_index := -1
 var _knob_position := Vector2.ZERO
 
 func _ready() -> void:
-    custom_minimum_size = Vector2(180, 180)
+    custom_minimum_size = Vector2(164, 164)
     mouse_filter = Control.MOUSE_FILTER_STOP
     _knob_position = size * 0.5
     queue_redraw()
@@ -62,7 +62,7 @@ func _release_stick() -> void:
 
 func _draw() -> void:
     var center := size * 0.5
-    draw_circle(center, base_radius, Color(0.05, 0.07, 0.09, 0.48))
-    draw_arc(center, base_radius, 0.0, TAU, 64, Color(0.8, 0.9, 1.0, 0.65), 3.0)
-    draw_circle(_knob_position, knob_radius, Color(0.2, 0.55, 0.9, 0.9))
-    draw_arc(_knob_position, knob_radius, 0.0, TAU, 48, Color(1, 1, 1, 0.85), 2.0)
+    draw_circle(center, base_radius, Color(0.015, 0.035, 0.05, 0.62))
+    draw_arc(center, base_radius, 0.0, TAU, 64, Color(0.65, 0.78, 0.82, 0.8), 3.0)
+    draw_circle(_knob_position, knob_radius, Color(0.22, 0.48, 0.58, 0.95))
+    draw_arc(_knob_position, knob_radius, 0.0, TAU, 48, Color(0.9, 0.95, 0.95, 0.9), 2.0)

@@ -1,64 +1,6 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" path="res://player.gd" id="1_player"]
-[ext_resource type="Script" path="res://joystick.gd" id="2_joystick"]
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
-size = Vector3(30, 0.2, 30)
-
-[sub_resource type="PlaneMesh" id="PlaneMesh_floor"]
-size = Vector2(30, 30)
-
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
-radius = 0.45
-height = 1.8
-
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_player"]
-radius = 0.45
-height = 1.8
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 
 [node name="Main" type="Node3D"]
-
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-rotation = Vector3(-0.8, -0.5, 0)
-shadow_enabled = true
-
-[node name="Floor" type="StaticBody3D" parent="."]
-
-[node name="FloorMesh" type="MeshInstance3D" parent="Floor"]
-position = Vector3(0, -0.1, 0)
-mesh = SubResource("PlaneMesh_floor")
-
-[node name="FloorCollision" type="CollisionShape3D" parent="Floor"]
-position = Vector3(0, -0.1, 0)
-shape = SubResource("BoxShape3D_floor")
-
-[node name="Player" type="CharacterBody3D" parent="."]
-position = Vector3(0, 1, 0)
-script = ExtResource("1_player")
-
-[node name="PlayerMesh" type="MeshInstance3D" parent="Player"]
-position = Vector3(0, 0, 0)
-mesh = SubResource("CapsuleMesh_player")
-
-[node name="PlayerCollision" type="CollisionShape3D" parent="Player"]
-shape = SubResource("CapsuleShape3D_player")
-
-[node name="Camera3D" type="Camera3D" parent="Player"]
-position = Vector3(0, 7, 9)
-rotation = Vector3(-0.62, 0, 0)
-current = true
-
-[node name="HUD" type="CanvasLayer" parent="."]
-
-[node name="Joystick" type="Control" parent="HUD"]
-custom_minimum_size = Vector2(180, 180)
-anchors_preset = 0
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_left = 28.0
-offset_top = -208.0
-offset_right = 208.0
-offset_bottom = -28.0
-
-script = ExtResource("2_joystick")
+script = ExtResource("1_main")
