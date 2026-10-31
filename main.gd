@@ -94,7 +94,7 @@ func _build_submarine() -> void:
 
     # Consoles on both sides.
     for side in [-1.0, 1.0]:
-        var x := side * 2.55
+        var x: float = float(side) * 2.55
         _box("ConsoleCabinet", Vector3(x, 1.0, -3.0), Vector3(0.62, 1.45, 1.5), dark_steel)
         var panel := _box("ConsoleScreen", Vector3(x - side * 0.325, 1.65, -3.0), Vector3(0.035, 0.72, 1.0), screen_mat)
         panel.rotation.y = deg_to_rad(90.0) if side < 0.0 else deg_to_rad(-90.0)
@@ -103,7 +103,7 @@ func _build_submarine() -> void:
 
     # Gauge clusters, valve wheels and storage cylinders.
     for side in [-1.0, 1.0]:
-        var gx := side * 2.78
+        var gx: float = float(side) * 2.78
         for z in [-5.2, -4.25, -3.3]:
             _cylinder("PressureGauge", Vector3(gx, 2.55, z), 0.25, 0.10, steel, Vector3(0, 0, 90))
             _cylinder("GaugeFace", Vector3(gx - side * 0.065, 2.55, z), 0.19, 0.025, floor_mat, Vector3(0, 0, 90))
