@@ -1,7 +1,7 @@
 extends Node3D
 
-const PlayerScript = preload("res://scripts/player.gd")
-const JoystickScript = preload("res://scripts/joystick.gd")
+const PlayerScript = preload("res://player.gd")
+const JoystickScript = preload("res://joystick.gd")
 
 var steel: StandardMaterial3D
 var dark_steel: StandardMaterial3D
@@ -18,10 +18,10 @@ func _ready() -> void:
     _build_hud()
 
 func _make_materials() -> void:
-    steel = _mat(Color(0.48, 0.55, 0.58), "res://textures/steel.png", 0.72, 0.48)
-    dark_steel = _mat(Color(0.12, 0.17, 0.19), "res://textures/steel.png", 0.8, 0.65)
-    floor_mat = _mat(Color(0.48, 0.52, 0.51), "res://textures/grate.png", 0.45, 0.82)
-    hazard_mat = _mat(Color.WHITE, "res://textures/hazard.png", 0.0, 0.8)
+    steel = _mat(Color(0.48, 0.55, 0.58), "res://steel.png", 0.72, 0.48)
+    dark_steel = _mat(Color(0.12, 0.17, 0.19), "res://steel.png", 0.8, 0.65)
+    floor_mat = _mat(Color(0.48, 0.52, 0.51), "res://grate.png", 0.45, 0.82)
+    hazard_mat = _mat(Color.WHITE, "res://hazard.png", 0.0, 0.8)
     red_light_mat = StandardMaterial3D.new()
     red_light_mat.albedo_color = Color(0.9, 0.035, 0.02)
     red_light_mat.emission_enabled = true
